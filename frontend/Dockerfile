@@ -1,20 +1,27 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Using Node 16 Alpine for a lightweight image
+FROM node:16-alpine
 
-# Set the working directory in the container
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy package.json and package-lock.json for better caching
+COPY package*.json ./
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies
+RUN npm install
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
+# Copy the rest of the frontend application source code
+COPY . .
 
-# Define environment variable
-ENV NAME World
+# Build the application using the build script specified in package.json
+RUN npm run build
 
-# Run app.py when the container launches
-CMD ["python", "app.py"]
+# Install serve to serve the build directory
+RUN npm install -g serve
+
+# Expose port 3000 for the serve command
+EXPOSE 3000
+
+# Command to run the app using serve on port 3000
+CMD ["serve", "-s", "dist", "-l", "3000"]
+

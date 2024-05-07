@@ -1,12 +1,24 @@
 version: '3.8'
+
 services:
-  backend:
-    build: ./backend
-    ports:
-      - "5001:5001"
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: my-frontend-app:latest  
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: my-backend-app:latest  
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=development
+    volumes:
+      - ./backend:/usr/src/app
