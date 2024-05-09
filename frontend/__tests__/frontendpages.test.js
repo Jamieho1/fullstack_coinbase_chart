@@ -6,7 +6,7 @@ import LandingPage from '../src/pages/LandingPage';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';  
 
-// Mock axios to handle HTTP requests
+// Handle HTTP requests
 jest.mock('axios');
 
 describe('LandingPage navigation', () => {
@@ -18,18 +18,18 @@ describe('LandingPage navigation', () => {
       </MemoryRouter>
     );
 
-    // Action: simulate user clicking the link to navigate
+    // Simulate user clicking the link to navigate
     const link = screen.getByRole('link', { name: /check historical prices/i });
     userEvent.click(link);
 
-    // Assertion: Check if the link attempts to navigate to the correct endpoint
+    // Check if the link attempts to navigate to the correct endpoint
     expect(link).toHaveAttribute('href', '/prices');
   });
 });
 
 describe('HistoricalPricesPage', () => {
   beforeEach(() => {
-    // Mock the axios.get response with a broader set of data
+    // Axios.get response with a broader set of data
     axios.get.mockResolvedValue({
       data: [
         { id: 'LINK-USD', display_name: 'LINK/USD' },

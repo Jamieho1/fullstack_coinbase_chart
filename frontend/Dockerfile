@@ -1,16 +1,15 @@
-# Using Node 16 Alpine for a lightweight image
 FROM node:16-alpine
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json for better caching
+# Copy package.json and package-lock.json for caching
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the frontend application source code
+# Copy the remaining frontend application source code
 COPY . .
 
 # Build the application using the build script specified in package.json

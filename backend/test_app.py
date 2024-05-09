@@ -12,7 +12,6 @@ def test_trading_pairs(client):
     """Test the /api/trading_pairs endpoint."""
     response = client.get('/api/trading_pairs')
     assert response.status_code == 200
-    # Check if the response is a list (expected behavior)
     assert isinstance(json.loads(response.data), list)
 
 def test_product_candles_missing_parameters(client):
@@ -30,5 +29,4 @@ def test_product_candles_success(client):
         'granularity': '3600'
     })
     assert response.status_code == 200
-    # Check if the response is a list (expected behavior)
     assert isinstance(json.loads(response.data), list)
