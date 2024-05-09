@@ -14,4 +14,3 @@ Performing  unit test of the backend:
 Performing test on the frontend:
 1. Navigate to the frontend by ‘cd frontend’ 
 2. Run the test with ‘npm test’
-![image](https://github.com/Jamieho1/fullstack_coinbase_chart/assets/72865004/c4f61f25-505b-4da0-9717-b6a1984934cd)
