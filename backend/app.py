@@ -1,12 +1,15 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from coinbase_api import CoinbaseAPI
+from flask_caching import Cache
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 coinbase_api = CoinbaseAPI()
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 @app.route('/api/trading_pairs', methods=['GET'])
+@cache.cached(timeout=50)
 def trading_pairs():
     try:
         data = coinbase_api.get_trading_pairs()
@@ -15,6 +18,7 @@ def trading_pairs():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/product_candles', methods=['GET'])
+@cache.cached(timeout=50)
 def product_candles():
     product_id = request.args.get('product_id')
     start = request.args.get('start')

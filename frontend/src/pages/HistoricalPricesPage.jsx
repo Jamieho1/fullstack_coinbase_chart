@@ -4,7 +4,14 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5001/api';
 const WS_URL = 'wss://ws-feed.pro.coinbase.com';
-const allowedGranularities = [60, 300, 900, 3600, 21600, 86400];
+const allowedGranularities = [
+  { value: 60, label: "1 Minute" },
+  { value: 300, label: "5 Minutes" },
+  { value: 900, label: "15 Minutes" },
+  { value: 3600, label: "Hourly" },
+  { value: 21600, label: "6 Hours" },
+  { value: 86400, label: "Daily" }
+];
 
 const HistoricalPricesPage = () => {
   const [tradingPairs, setTradingPairs] = useState([]);
@@ -16,7 +23,7 @@ const HistoricalPricesPage = () => {
   const [historicalChart, setHistoricalChart] = useState(null);
   const [realTimeChart, setRealTimeChart] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
-  const [RealTimeGranularity, setRealTimeGranularity] = useState('');
+  const [realTimeGranularity, setRealTimeGranularity] = useState(60);
 
   useEffect(() => {
     const fetchTradingPairs = async () => {
@@ -38,7 +45,9 @@ const HistoricalPricesPage = () => {
 
   useEffect(() => {
     const fetchAndDisplayCandles = async () => {
-      if (!selectedHistoricalPair || !allowedGranularities.includes(Number(historicalGranularity))) {
+      const isGranularityValid = allowedGranularities.some(g => g.value === Number(historicalGranularity));
+
+      if (!selectedHistoricalPair || !isGranularityValid) {
         setErrorMessage('Invalid granularity or no selected trading pair.');
         return;
       }
@@ -99,25 +108,30 @@ const HistoricalPricesPage = () => {
     ws.onmessage = (event) => {
       const response = JSON.parse(event.data);
       if (response.type === 'ticker' && response.product_id === selectedRealTimePair) {
-        if (!realTimeChart) {
+        const newTime = new Date(response.time).toLocaleTimeString();
+        const newPrice = response.price;
+
+        if (realTimeChart) {
+          realTimeChart.data.labels.push(newTime);
+          realTimeChart.data.datasets.forEach((dataset) => {
+            dataset.data.push(newPrice);
+          });
+          realTimeChart.update();
+        } else {
           const ctx = document.getElementById('realTimeChart');
           const newChart = new Chart(ctx, {
             type: 'line',
             data: {
-              labels: [new Date(response.time).toLocaleTimeString()],
+              labels: [newTime],
               datasets: [{
                 label: 'Real-Time Price',
-                data: [response.price],
+                data: [newPrice],
                 borderColor: 'rgba(255, 99, 132, 1)',
                 fill: false
               }]
             }
           });
           setRealTimeChart(newChart);
-        } else {
-          realTimeChart.data.labels.push(new Date(response.time).toLocaleTimeString());
-          realTimeChart.data.datasets[0].data.push(response.price);
-          realTimeChart.update();
         }
       }
     };
@@ -134,10 +148,10 @@ const HistoricalPricesPage = () => {
   }, [selectedRealTimePair]);
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
       <div>
         <h2>Historical Data</h2>
-        <select onChange={e => setSelectedHistoricalPair(e.target.value)} value={selectedHistoricalPair}>
+        <select data-testid="historical-trading-pair" onChange={e => setSelectedHistoricalPair(e.target.value)} value={selectedHistoricalPair}>
           {tradingPairs.map(pair => (
             <option key={pair.id} value={pair.id}>{pair.display_name}</option>
           ))}
@@ -146,21 +160,22 @@ const HistoricalPricesPage = () => {
         <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
         <select value={historicalGranularity} onChange={e => setHistoricalGranularity(e.target.value)}>
           {allowedGranularities.map(g => (
-            <option key={g} value={g}>{`${g} seconds`}</option>
+            <option key={g.value} value={g.value}>{g.label}</option>
           ))}
         </select>
         <canvas id="historicalChart"></canvas>
+        {/* {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>} */}
       </div>
       <div>
         <h2>Real-Time Data</h2>
-        <select onChange={e => setSelectedRealTimePair(e.target.value)} value={selectedRealTimePair}>
+        <select data-testid="realtime-trading-pair" onChange={e => setSelectedRealTimePair(e.target.value)} value={selectedRealTimePair}>
           {tradingPairs.map(pair => (
             <option key={pair.id} value={pair.id}>{pair.display_name}</option>
           ))}
         </select>
-        <select value={RealTimeGranularity} onChange={e => setRealTimeGranularity(e.target.value)}>
+        <select value={realTimeGranularity} onChange={e => setRealTimeGranularity(e.target.value)}>
           {allowedGranularities.map(g => (
-            <option key={g} value={g}>{`${g} seconds`}</option>
+            <option key={g.value} value={g.value}>{g.label}</option>
           ))}
         </select>
         <canvas id="realTimeChart"></canvas>
